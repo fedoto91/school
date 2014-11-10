@@ -1,4 +1,5 @@
 package sdes;
+import java.io.UnsupportedEncodingException;
 import java.util.*;
 /**
  * Test the implementation of SDES
@@ -8,7 +9,7 @@ import java.util.*;
  */
 public class Driver
 {
-   public static void main(String[] args)
+   public static void main(String[] args) throws UnsupportedEncodingException
 {   SDES sdes = new SDES();
 
     Scanner scanner = new Scanner (System.in);
