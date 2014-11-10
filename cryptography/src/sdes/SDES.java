@@ -1,6 +1,8 @@
 package sdes;
 
+import java.io.UnsupportedEncodingException;
 import java.util.Arrays;
+import java.util.BitSet;
 import java.util.Scanner;
 
 /**
@@ -69,7 +71,7 @@ public class SDES {
 
 	boolean[] K1, K2, IP, key10;
 
-	int[] epvIP = { 1, 5, 2, 0, 3, 7, 4, 7 };
+	int[] epvIP = { 1, 5, 2, 0, 3, 7, 4, 6 };
 	int[] epvRIP = { 3, 0, 2, 4, 6, 1, 7, 5 }; // inverse IP
 	int[] epvK1 = { 0, 6, 8, 3, 7, 2, 9, 5 };
 	int[] epvK2 = { 7, 2, 5, 4, 9, 1, 8, 0 };
@@ -162,13 +164,15 @@ public class SDES {
 	 * 
 	 * @param bytes
 	 * @return
+	 * @throws UnsupportedEncodingException 
 	 */
-	public static String byteArrayToString(byte[] bytes) {
-		StringBuilder build = new StringBuilder();
-		for (byte b : bytes) {
-			build.append(b);
-		}
-		return build.toString();
+	public static String byteArrayToString(byte[] bytes) throws UnsupportedEncodingException {
+//		StringBuilder build = new StringBuilder();
+//		for (byte b : bytes) {
+//			build.append(b);
+//		}
+//		return build.toString();
+		return new String(bytes, "UTF-8");
 	}
 
 	/**
@@ -232,8 +236,8 @@ public class SDES {
 		for (int i = 0; i < a1.length; i++) {
 			result[i] = a1[i];
 		}
-		for (int j = a1.length; j < result.length; j++) {
-			result[j] = a2[j - 4];
+		for (int i = a1.length; i < result.length; i++) {
+			result[i] = a2[i - a1.length];
 		}
 		return result;
 	}
@@ -319,99 +323,348 @@ public class SDES {
 	 * 
 	 * @return An array of encrpyted boolean values.
 	 */
-	/*
-	 * F(k,x) is a Feistel function F(k,x) = P4 (s0 (L (k xor EP(x))) || s1 (R
-	 * (k xor EP(x)))
-	 * 
-	 * @param The key used.
-	 * 
-	 * @param The message to be encrypted.
-	 * 
-	 * @return An array of encrpyted boolean values.
-	 */
 
 	public static boolean[] feistel(boolean[] k, boolean[] x) {
 		int[] p4 = { 1, 3, 2, 0 };
 		int[] EP = { 3, 0, 1, 2, 1, 2, 3, 0 };
-		String[][] s0Block = { { "X", "00", "01", "10", "11" },
-				{ "00", "01", "00", "11", "10" },
-				{ "01", "11", "10", "01", "00" },
-				{ "10", "00", "10", "01", "11" },
-				{ "11", "11", "01", "11", "10" } };
-		String[][] s1Block = { { "X", "00", "01", "10", "11" },
-				{ "00", "00", "01", "10", "11" },
-				{ "01", "10", "00", "01", "11" },
-				{ "10", "11", "00", "01", "00" },
-				{ "11", "10", "01", "00", "11" } };
-		// How do you do S-blocks?
-		boolean[] s0 = lh(xor(k, expPerm(x, EP))); // s0(L(k XOR EP(x))
-		boolean[] s1 = rh(xor(k, expPerm(x, EP))); // s1(R(k XOR EP(x))
-
-		String[] s0Str = { "", "" };
-		String[] s1Str = { "", "" };
-		String s0BlockStr = "";
-		String s1BlockStr = "";
-		for (int i = 0; i < s0.length / 2; i++) { // Grab the first two bytes of
-													// s0
-			if (s0[i] == true)
-				s0Str[0] = s0Str[0] + "1";
-			else if (s0[i] == false)
-				s0Str[0] = s0Str[0] + "0";
+		
+		boolean[][][] s0Block = new boolean[4][4][2];
+		boolean[][][] s1Block = new boolean[4][4][2];
+		
+		s0Block[0][0][0] = false;
+		s0Block[0][0][1] = true;
+		//--------------------------
+		s0Block[0][1][0] = false;
+		s0Block[0][1][1] = false;
+		//--------------------------
+		s0Block[0][2][0] = true;
+		s0Block[0][2][1] = true;
+		//--------------------------
+		s0Block[0][3][0] = true;
+		s0Block[0][3][1] = false;
+		//--------------------------
+		//--------------------------
+		s0Block[1][0][0] = true;
+		s0Block[1][0][1] = true;
+		//--------------------------
+		s0Block[1][1][0] = true;
+		s0Block[1][1][1] = false;
+		//--------------------------
+		s0Block[1][2][0] = false;
+		s0Block[1][2][1] = true;
+		//--------------------------
+		s0Block[1][3][0] = false;
+		s0Block[1][3][1] = false;
+		//--------------------------
+		//--------------------------
+		s0Block[2][0][0] = false;
+		s0Block[2][0][1] = false;
+		//--------------------------
+		s0Block[2][1][0] = true;
+		s0Block[2][1][1] = false;
+		//--------------------------
+		s0Block[2][2][0] = false;
+		s0Block[2][2][1] = true;
+		//--------------------------
+		s0Block[2][3][0] = true;
+		s0Block[2][3][1] = true;
+		//--------------------------
+		//--------------------------
+		s0Block[3][0][0] = true;
+		s0Block[3][0][1] = true;
+		//--------------------------
+		s0Block[3][1][0] = false;
+		s0Block[3][1][1] = true;
+		//--------------------------
+		s0Block[3][2][0] = true;
+		s0Block[3][2][1] = true;
+		//--------------------------
+		s0Block[3][3][0] = true;
+		s0Block[3][3][1] = false;
+		//--------------------------
+		//--------------------------
+		
+		
+		s1Block[0][0][0] = false;
+		s1Block[0][0][1] = false;
+		//--------------------------
+		s1Block[0][1][0] = false;
+		s1Block[0][1][1] = true;
+		//--------------------------
+		s1Block[0][2][0] = true;
+		s1Block[0][2][1] = false;
+		//--------------------------
+		s1Block[0][3][0] = true;
+		s1Block[0][3][1] = true;
+		//--------------------------
+		//--------------------------
+		s1Block[1][0][0] = true;
+		s1Block[1][0][1] = false;
+		//--------------------------
+		s1Block[1][1][0] = false;
+		s1Block[1][1][1] = false;
+		//--------------------------
+		s1Block[1][2][0] = false;
+		s1Block[1][2][1] = true;
+		//--------------------------
+		s1Block[1][3][0] = true;
+		s1Block[1][3][1] = true;
+		//--------------------------
+		//--------------------------
+		s1Block[2][0][0] = true;
+		s1Block[2][0][1] = true;
+		//--------------------------
+		s1Block[2][1][0] = false;
+		s1Block[2][1][1] = false;
+		//--------------------------
+		s1Block[2][2][0] = false;
+		s1Block[2][2][1] = true;
+		//--------------------------
+		s1Block[2][3][0] = false;
+		s1Block[2][3][1] = false;
+		//--------------------------
+		//--------------------------
+		s1Block[3][0][0] = true;
+		s1Block[3][0][1] = false;
+		//--------------------------
+		s1Block[3][1][0] = false;
+		s1Block[3][1][1] = true;
+		//--------------------------
+		s1Block[3][2][0] = false;
+		s1Block[3][2][1] = false;
+		//--------------------------
+		s1Block[3][3][0] = true;
+		s1Block[3][3][1] = true;
+		//--------------------------
+		//--------------------------
+		
+		boolean[] left = lh(xor(k, expPerm(x, EP)));
+		boolean[] right = rh(xor(k, expPerm(x, EP)));
+		boolean[] s0 = new boolean[2];
+		boolean[] s1 = new boolean[2];;
+		
+		//**********************************//
+		//             S-Box 1              //
+		//**********************************//
+		
+		if (left[0] == false && left[3] == false) // row 1
+		{
+			if (left[1] == false && left[2] == false) // col 1
+			{
+				s0[0] = s0Block[0][0][0];
+				s0[1] = s0Block[0][0][1];
+			}
+			
+			if (left[1] == false && left[2] == true) // col 2
+			{
+				s0[0] = s0Block[0][1][0];
+				s0[1] = s0Block[0][1][1];
+			}
+			
+			if (left[1] == true && left[2] == false) // col 3
+			{
+				s0[0] = s0Block[0][2][0];
+				s0[1] = s0Block[0][2][1];
+			}
+			
+			if (left[1] == true && left[2] == true) // col 4
+			{
+				s0[0] = s0Block[0][3][0];
+				s0[1] = s0Block[0][3][1];
+			}
 		}
-		for (int i = s0.length / 2; i < s0.length; i++) { // grab the last two
-															// bytes of s0
-			if (s0[i] == true)
-				s0Str[1] = s0Str[1] + "1";
-			else if (s0[i] == false)
-				s0Str[1] = s0Str[1] + "0";
+		
+		if (left[0] == false && left[3] == true) // row 2
+		{
+			if (left[1] == false && left[2] == false) // col 1
+			{
+				s0[0] = s0Block[1][0][0];
+				s0[1] = s0Block[1][0][1];
+			}
+			
+			if (left[1] == false && left[2] == true) // col 2
+			{
+				s0[0] = s0Block[1][1][0];
+				s0[1] = s0Block[1][1][1];
+			}
+			
+			if (left[1] == true && left[2] == false) // col 3
+			{
+				s0[0] = s0Block[1][2][0];
+				s0[1] = s0Block[1][2][1];
+			}
+			
+			if (left[1] == true && left[2] == true) // col 4
+			{
+				s0[0] = s0Block[1][3][0];
+				s0[1] = s0Block[1][3][1];
+			}
 		}
-		for (int i = 0; i < s1.length / 2; i++) { // Grab the first two bytes of
-													// s1
-			if (s1[0] == true)
-				s1Str[0] = s1Str[0] + "1";
-			else if (s1[1] == false)
-				s1Str[0] = s1Str[0] + "0";
+		
+		if (left[0] == true && left[3] == false) // row 3
+		{
+			if (left[1] == false && left[2] == false) // col 1
+			{
+				s0[0] = s0Block[2][0][0];
+				s0[1] = s0Block[2][0][1];
+			}
+			
+			if (left[1] == false && left[2] == true) // col 2
+			{
+				s0[0] = s0Block[2][1][0];
+				s0[1] = s0Block[2][1][1];
+			}
+			
+			if (left[1] == true && left[2] == false) // col 3
+			{
+				s0[0] = s0Block[2][2][0];
+				s0[1] = s0Block[2][2][1];
+			}
+			
+			if (left[1] == true && left[2] == true) // col 4
+			{
+				s0[0] = s0Block[2][3][0];
+				s0[1] = s0Block[2][3][1];
+			}
 		}
-		for (int i = s1.length / 2; i < s1.length; i++) { // Grab the last two
-															// bytes of s1
-			if (s1[i] == true)
-				s1Str[1] = s1Str[1] + "1";
-			else if (s1[i] == false)
-				s1Str[1] = s1Str[1] + "0";
+		
+		if (left[0] == true && left[3] == true) // row 4
+		{
+			if (left[1] == false && left[2] == false) // col 1
+			{
+				s0[0] = s0Block[3][0][0];
+				s0[1] = s0Block[3][0][1];
+			}
+			
+			if (left[1] == false && left[2] == true) // col 2
+			{
+				s0[0] = s0Block[3][1][0];
+				s0[1] = s0Block[3][1][1];
+			}
+			
+			if (left[1] == true && left[2] == false) // col 3
+			{
+				s0[0] = s0Block[3][2][0];
+				s0[1] = s0Block[3][2][1];
+			}
+			
+			if (left[1] == true && left[2] == true) // col 4
+			{
+				s0[0] = s0Block[3][3][0];
+				s0[1] = s0Block[3][3][1];
+			}
 		}
-
-		for (int i = 0; i < 5; i++)
-			// Use the first two bytes of s0 to find the correct column
-			if (s0Str[0].equals(s0Block[0][i])) // Use the last two bytes of s0
-												// to find the correct row
-				for (int y = 0; y < 5; y++)
-					// Set s0BlockStr to the string in the relative position of
-					// the s block
-					if (s0Str[1].equals(s0Block[y][0]))
-						s0BlockStr = s0Block[y][i];
-
-		for (int i = 0; i < 5; i++)
-			if (s1Str[0].equals(s1Block[0][i]))
-				for (int y = 0; y < 5; y++)
-					if (s1Str[1].equals(s1Block[y][0]))
-						s1BlockStr = s1Block[y][i];
-
-		for (int i = 0; i < s0BlockStr.length(); i++) { // Change all the string
-														// values of the
-														// s0BlockStr to boolean
-														// values
-			if (s0BlockStr.charAt(i) == '1') // and throw them back into s0 and
-												// s1.
-				s0[i] = true;
-			else if (s0BlockStr.charAt(i) == '0')
-				s0[i] = false;
+		
+		//**********************************//
+		//             S-Box 2              //
+		//**********************************//
+		
+		if (right[0] == false && right[3] == false) // row 1
+		{
+			if (left[1] == false && left[2] == false) // col 1
+			{
+				s1[0] = s1Block[0][0][0];
+				s1[1] = s1Block[0][0][1];
+			}
+			
+			if (right[1] == false && right[2] == true) // col 2
+			{
+				s1[0] = s1Block[0][1][0];
+				s1[1] = s1Block[0][1][1];
+			}
+			
+			if (right[1] == true && right[2] == false) // col 3
+			{
+				s1[0] = s1Block[0][2][0];
+				s1[1] = s1Block[0][2][1];
+			}
+			
+			if (right[1] == true && right[2] == true) // col 4
+			{
+				s1[0] = s1Block[0][3][0];
+				s1[1] = s1Block[0][3][1];
+			}
 		}
-
-		for (int i = 0; i < s1BlockStr.length(); i++) {
-			if (s1BlockStr.charAt(i) == '1')
-				s1[i] = true;
-			else if (s1BlockStr.charAt(i) == '0')
-				s1[i] = false;
+		
+		if (right[0] == false && right[3] == true) // row 2
+		{
+			if (right[1] == false && right[2] == false) // col 1
+			{
+				s1[0] = s1Block[1][0][0];
+				s1[1] = s1Block[1][0][1];
+			}
+			
+			if (right[1] == false && right[2] == true) // col 2
+			{
+				s1[0] = s1Block[1][1][0];
+				s1[1] = s1Block[1][1][1];
+			}
+			
+			if (right[1] == true && right[2] == false) // col 3
+			{
+				s1[0] = s1Block[1][2][0];
+				s1[1] = s1Block[1][2][1];
+			}
+			
+			if (right[1] == true && right[2] == true) // col 4
+			{
+				s1[0] = s1Block[1][3][0];
+				s1[1] = s1Block[1][3][1];
+			}
+		}
+		
+		if (right[0] == true && right[3] == false) // row 3
+		{
+			if (right[1] == false && right[2] == false) // col 1
+			{
+				s1[0] = s1Block[2][0][0];
+				s1[1] = s1Block[2][0][1];
+			}
+			
+			if (right[1] == false && right[2] == true) // col 2
+			{
+				s1[0] = s1Block[2][1][0];
+				s1[1] = s1Block[2][1][1];
+			}
+			
+			if (right[1] == true && right[2] == false) // col 3
+			{
+				s1[0] = s1Block[2][2][0];
+				s1[1] = s1Block[2][2][1];
+			}
+			
+			if (right[1] == true && right[2] == true) // col 4
+			{
+				s1[0] = s1Block[2][3][0];
+				s1[1] = s1Block[2][3][1];
+			}
+		}
+		
+		if (right[0] == true && right[3] == true) // row 4
+		{
+			if (right[1] == false && right[2] == false) // col 1
+			{
+				s1[0] = s1Block[3][0][0];
+				s1[1] = s1Block[3][0][1];
+			}
+			
+			if (right[1] == false && right[2] == true) // col 2
+			{
+				s1[0] = s1Block[3][1][0];
+				s1[1] = s1Block[3][1][1];
+			}
+			
+			if (right[1] == true && right[2] == false) // col 3
+			{
+				s1[0] = s1Block[3][2][0];
+				s1[1] = s1Block[3][2][1];
+			}
+			
+			if (right[1] == true && right[2] == true) // col 4
+			{
+				s1[0] = s1Block[3][3][0];
+				s1[1] = s1Block[3][3][1];
+			}
 		}
 
 		boolean[] result = expPerm(concat(s0, s1), p4); // P4(s0 || s1)
