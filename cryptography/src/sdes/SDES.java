@@ -9,6 +9,8 @@ import java.util.Scanner;
  * SDES
  * 
  * @author (Eugene Fedotov)
+ * @author (Jonathan Frederickson)
+ * @author (Matthew Ng)
  * @version (October 16, 2014)
  */
 
@@ -40,9 +42,8 @@ public class SDES {
 	 */
 	byte[] encrypt(String msg) {
 		System.out.println("Enter a 10-bit key:");
-		key10 = getKey10(new Scanner(System.in));
-		K1 = expPerm(key10, epvK1);
-		K2 = expPerm(key10, epvK2);
+		getKey10(new Scanner(System.in));
+
 		byte[] block = msg.getBytes();
 
 		for (int i = 0; i < block.length; i++) {
@@ -60,6 +61,9 @@ public class SDES {
 	 * @return decrypted bytes
 	 */
 	byte[] decrypt(byte[] cipher) {
+		System.out.println("Enter a 10-bit key:");
+		getKey10(new Scanner(System.in));
+		
 		byte[] plain = new byte[cipher.length];
 
 		for (int i = 0; i < cipher.length; i++) {
@@ -69,12 +73,12 @@ public class SDES {
 		return plain;
 	}
 
-	boolean[] K1, K2, IP, key10;
+	static boolean[] K1, K2, IP, key10;
 
-	int[] epvIP = { 1, 5, 2, 0, 3, 7, 4, 6 };
-	int[] epvRIP = { 3, 0, 2, 4, 6, 1, 7, 5 }; // inverse IP
-	int[] epvK1 = { 0, 6, 8, 3, 7, 2, 9, 5 };
-	int[] epvK2 = { 7, 2, 5, 4, 9, 1, 8, 0 };
+	static int[] epvIP = { 1, 5, 2, 0, 3, 7, 4, 6 };
+	static int[] epvRIP = { 3, 0, 2, 4, 6, 1, 7, 5 }; // inverse IP
+	static int[] epvK1 = { 0, 6, 8, 3, 7, 2, 9, 5 };
+	static int[] epvK2 = { 7, 2, 5, 4, 9, 1, 8, 0 };
 
 	/**
 	 * Encrypt a single byte using SDES
@@ -135,13 +139,13 @@ public class SDES {
 	 *            the scanner to read from
 	 * @return a String containing the values read from the scanner
 	 */
-	public static boolean[] getKey10(Scanner s) {
+	public static void getKey10(Scanner s) {
 		boolean[] result = new boolean[10];
 		String keyString = s.nextLine();
 
 		if (keyString.length() != 10) {
 			System.err.println("Error: must input 10-bit key");
-			return null;
+			return;
 		}
 
 		for (int i = 0; i < 10; i++) {
@@ -157,7 +161,8 @@ public class SDES {
 				break;
 			}
 		}
-		return result;
+		K1 = expPerm(result, epvK1);
+		K2 = expPerm(result, epvK2);
 	}
 
 	/**
