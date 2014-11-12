@@ -17,7 +17,15 @@ import java.util.Scanner;
 public class SDES {
 
 	boolean[] bitArray;
-
+	
+	boolean[] K1, K2, IP, key10;
+	
+	final int[] epvIP = { 1, 5, 2, 0, 3, 7, 4, 6 };
+	final int[] epvRIP = { 3, 0, 2, 4, 6, 1, 7, 5 }; // inverse IP
+	final int[] epvK1 = { 0, 6, 8, 3, 7, 2, 9, 5 };
+	final int[] epvK2 = { 7, 2, 5, 4, 9, 1, 8, 0 };
+	
+	
 	/**
 	 * Send the byteArray to stdout
 	 */
@@ -41,8 +49,10 @@ public class SDES {
 	 * @return the encrypted plaintext as a series of bytes
 	 */
 	byte[] encrypt(String msg) {
-		System.out.println("Enter a 10-bit key:");
-		getKey10(new Scanner(System.in));
+		if(K1 == null || K2 == null) {
+			System.out.println("Enter a 10-bit key:");
+			getKey10(new Scanner(System.in));
+		}
 
 		byte[] block = msg.getBytes();
 
@@ -61,8 +71,10 @@ public class SDES {
 	 * @return decrypted bytes
 	 */
 	byte[] decrypt(byte[] cipher) {
-		System.out.println("Enter a 10-bit key:");
-		getKey10(new Scanner(System.in));
+		if(K1 == null || K2 == null) {
+			System.out.println("Enter a 10-bit key:");
+			getKey10(new Scanner(System.in));
+		}
 		
 		byte[] plain = new byte[cipher.length];
 
@@ -72,13 +84,6 @@ public class SDES {
 
 		return plain;
 	}
-
-	static boolean[] K1, K2, IP, key10;
-
-	static int[] epvIP = { 1, 5, 2, 0, 3, 7, 4, 6 };
-	static int[] epvRIP = { 3, 0, 2, 4, 6, 1, 7, 5 }; // inverse IP
-	static int[] epvK1 = { 0, 6, 8, 3, 7, 2, 9, 5 };
-	static int[] epvK2 = { 7, 2, 5, 4, 9, 1, 8, 0 };
 
 	/**
 	 * Encrypt a single byte using SDES
@@ -132,14 +137,14 @@ public class SDES {
 	}
 
 	/**
-	 * Gets a 10-digit key from a scanner. TODO: Further testing - I'm not very
-	 * familiar with scanners
+	 * Gets a 10-digit key from a scanner and stores round keys
+	 * in K1 and K2
 	 * 
 	 * @param s
 	 *            the scanner to read from
 	 * @return a String containing the values read from the scanner
 	 */
-	public static void getKey10(Scanner s) {
+	public void getKey10(Scanner s) {
 		boolean[] result = new boolean[10];
 		String keyString = s.nextLine();
 
@@ -172,11 +177,6 @@ public class SDES {
 	 * @throws UnsupportedEncodingException 
 	 */
 	public static String byteArrayToString(byte[] bytes) throws UnsupportedEncodingException {
-//		StringBuilder build = new StringBuilder();
-//		for (byte b : bytes) {
-//			build.append(b);
-//		}
-//		return build.toString();
 		return new String(bytes, "UTF-8");
 	}
 
@@ -219,8 +219,7 @@ public class SDES {
 	}
 
 	/**
-	 * Exclusive OR function. Example: 101 XOR 110 == 011 TODO: Put a truth
-	 * table here maybe?
+	 * Exclusive OR function. Example: 101 XOR 110 == 011
 	 * 
 	 * @param a1
 	 * @param a2
@@ -236,6 +235,14 @@ public class SDES {
 		return result;
 	}
 
+	/**
+	 * Concatenates two bit arrays together
+	 * 
+	 * @param a1
+	 * @param a2
+	 * 
+	 * @return a1 concatenated with a2
+	 */
 	public static boolean[] concat(boolean[] a1, boolean[] a2) {
 		boolean[] result = new boolean[a1.length + a2.length];
 		for (int i = 0; i < a1.length; i++) {
@@ -318,7 +325,7 @@ public class SDES {
 		return result;
 	}
 
-	/*
+	/**
 	 * F(k,x) is a Feistel function F(k,x) = P4 (s0 (L (k xor EP(x))) || s1 (R
 	 * (k xor EP(x)))
 	 * 
