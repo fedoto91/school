@@ -45,16 +45,94 @@ public class RSA {
 
 	// .......... place class methods here
 
+	//PART2 - Joe///////////////////////////////////////////////////////////////////////////////////////////
+	
 	/**
 	 * Find the multiplicative inverse of a long int
+	 * Uses the extended Euclidean Algorithm.
 	 * 
-	 * @param e
-	 * @param m
-	 * @return The inverse of e, mod m. Uses the extended Eulidean Algorithm
+	 * @param e, the number for which to find the multiplicative inverse
+	 * @param m, the relative modulus
+	 * @return The multiplicative inverse of e, mod m
 	 */
 	public static long inverse(long e, long m) {
-		return (long) 0;
+		if(e == 1)
+			return m+1;
+		
+		// setup
+		long r2Prev = m;
+		long rPrev = e;
+		long u2Prev = 0;
+		long uPrev = 1;
+		long rCur = 0;
+		long qCur = 0;
+		long uCur = 0;
+
+		// calculate "table"
+		while(rCur != 1) {
+			//calculate the current line of the table
+			rCur = r2Prev % rPrev;
+			qCur = r2Prev / rPrev;
+			uCur = u2Prev - uPrev * qCur;
+			
+			// shift all the values for the next line
+			r2Prev = rPrev;
+			rPrev = rCur;
+			u2Prev = uPrev;
+			uPrev = uCur;
+		}
+		
+		// if negative, add mod value to make positive
+		if (uCur < 0)
+			return uCur + m;
+		
+		return uCur;
 	}
+	
+	/**
+	 * Raise a number, b, to a power, p, modulo m
+	 * 
+	 * @param b, the base number to raise to the given power
+	 * @param p, the power to raise the given base to
+	 * @param m, the modulo to be used 
+	 * @return b^p (mod m)
+	 */
+	public static long modPower(long b, long p, long m) {
+		
+		if(m == 0)
+		{
+			System.out.print("Error! Modulo must be greater than zero: ");
+			return -1;
+		}
+		if(p == 0)
+			return 1 % m;
+		if(p == 1)
+			return b % m;
+		
+		if(b > m)
+		{
+			b = b % m;
+		}
+		
+		long reducedP;
+		if(m > 1)
+		{
+			reducedP = p % (m-1);
+			if(reducedP == 0)
+				return 1;
+		}
+		else
+			reducedP = 0;
+		
+		long result = (b * b) % m;
+		for (int i = 2; i < reducedP; i++)
+		{
+			result = (result * b) % m;
+		}
+		return result;
+	}
+	
+	//End-PART2///////////////////////////////////////////////////////////////////////////////////////////
 
 	/**
 	 * Display an array of longs on stdout
@@ -63,18 +141,6 @@ public class RSA {
 	 */
 	public static void show(long[] cipher) {
 
-	}
-
-	/**
-	 * Raise a number, b, to a power, p, modulo m
-	 * 
-	 * @param b
-	 * @param p
-	 * @param m
-	 * @return b^p (mod m)
-	 */
-	public static long modPower(long b, long p, long m) {
-		return (long) 0;
 	}
 
 	/**
