@@ -45,16 +45,94 @@ public class RSA {
 
 	// .......... place class methods here
 
+	//PART2 - Joe///////////////////////////////////////////////////////////////////////////////////////////
+	
 	/**
 	 * Find the multiplicative inverse of a long int
+	 * Uses the extended Euclidean Algorithm.
 	 * 
-	 * @param e
-	 * @param m
-	 * @return The inverse of e, mod m. Uses the extended Eulidean Algorithm
+	 * @param e, the number for which to find the multiplicative inverse
+	 * @param m, the relative modulus
+	 * @return The multiplicative inverse of e, mod m
 	 */
 	public static long inverse(long e, long m) {
-		return (long) 0;
+		if(e == 1)
+			return m+1;
+		
+		// setup
+		long r2Prev = m;
+		long rPrev = e;
+		long u2Prev = 0;
+		long uPrev = 1;
+		long rCur = 0;
+		long qCur = 0;
+		long uCur = 0;
+
+		// calculate "table"
+		while(rCur != 1) {
+			//calculate the current line of the table
+			rCur = r2Prev % rPrev;
+			qCur = r2Prev / rPrev;
+			uCur = u2Prev - uPrev * qCur;
+			
+			// shift all the values for the next line
+			r2Prev = rPrev;
+			rPrev = rCur;
+			u2Prev = uPrev;
+			uPrev = uCur;
+		}
+		
+		// if negative, add mod value to make positive
+		if (uCur < 0)
+			return uCur + m;
+		
+		return uCur;
 	}
+	
+	/**
+	 * Raise a number, b, to a power, p, modulo m
+	 * 
+	 * @param b, the base number to raise to the given power
+	 * @param p, the power to raise the given base to
+	 * @param m, the modulo to be used 
+	 * @return b^p (mod m)
+	 */
+	public static long modPower(long b, long p, long m) {
+		
+		if(m == 0)
+		{
+			System.out.print("Error! Modulo must be greater than zero: ");
+			return -1;
+		}
+		if(p == 0)
+			return 1 % m;
+		if(p == 1)
+			return b % m;
+		
+		if(b > m)
+		{
+			b = b % m;
+		}
+		
+		long reducedP;
+		if(m > 1)
+		{
+			reducedP = p % (m-1);
+			if(reducedP == 0)
+				return 1;
+		}
+		else
+			reducedP = 0;
+		
+		long result = (b * b) % m;
+		for (int i = 2; i < reducedP; i++)
+		{
+			result = (result * b) % m;
+		}
+		return result;
+	}
+	
+	//End-PART2///////////////////////////////////////////////////////////////////////////////////////////
 
 	/**
 	 * Display an array of longs on stdout
@@ -62,19 +140,7 @@ public class RSA {
 	 * @param cipher
 	 */
 	public static void show(long[] cipher) {
-
-	}
-
-	/**
-	 * Raise a number, b, to a power, p, modulo m
-	 * 
-	 * @param b
-	 * @param p
-	 * @param m
-	 * @return b^p (mod m)
-	 */
-	public static long modPower(long b, long p, long m) {
-		return (long) 0;
+		System.out.println(cipher);
 	}
 
 	/**
@@ -87,7 +153,26 @@ public class RSA {
 	 *         number
 	 */
 	public static long randPrime(int m, int n, Random rand) {
-		return (long) 0;
+		long rNum = rand.nextInt(n) + m;
+		// primality test
+		boolean isPrime = false;
+		while (!isPrime){
+			if (rNum <= 1){
+				rNum = rand.nextInt(n) + m;
+			}
+			else if (rNum % 2 == 0 || rNum % 3 == 0){
+				rNum = rand.nextInt(n) + m;
+			}
+			else{
+				for (int k = 0; 6 * k + 1 <= Math.sqrt(rNum); k++){
+					if (rNum == (6 * k + 1)){
+						isPrime = true;
+					}
+				}
+				rNum = rand.nextInt(n) + m;
+			}
+		}	
+		return rNum;	
 	}
 
 	/**
@@ -98,7 +183,8 @@ public class RSA {
 	 * @return a random number relatively prime to n
 	 */
 	public static long relPrime(long n, Random rand) {
-		return (long) 0;
+		long rNum = rand.nextInt();
+		return inverse(n, rNum);
 	}
 
 	/**
@@ -110,7 +196,7 @@ public class RSA {
 	 *         int.
 	 */
 	public static long toLong(String msg, int p) {
-		return (long) 0;
+		return Long.parseLong(Character.toString(msg.charAt(p)) + Character.toString(msg.charAt(p + 1)));
 	}
 
 	/**
@@ -120,7 +206,7 @@ public class RSA {
 	 * @return The string made up two numeric digits representing x
 	 */
 	public static String longTo2Chars(long x) {
-		return "";
+		return String.valueOf(x);
 	}
 
 }

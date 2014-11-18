@@ -7,7 +7,7 @@ import java.io.*;
 import java.math.*;
 import java.util.*;	// Random number generator
 
-public class RSA
+public class Driver
 {
 public static void main (String args[])
 { 	
@@ -20,7 +20,7 @@ public static void main (String args[])
 
 	System.out.println ("Message is: " + msg);
 	System.out.println ("Alice sends:");
-	show (cipher);
+	RSA.show (cipher);
 
 	System.out.println ("Bob decodes and reads: " + Bob.decrypt (cipher));	// decrypted,
 								// with Bob's private key.
@@ -31,7 +31,7 @@ public static void main (String args[])
 	
 	System.out.println ("Message is: " + msg);
 	System.out.println ("Bob sends:");
-	show (cipher);
+	RSA.show (cipher);
 
 	System.out.println ("Alice decodes and reads: " + Alice.decrypt (cipher));
 }
