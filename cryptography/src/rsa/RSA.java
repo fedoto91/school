@@ -140,7 +140,7 @@ public class RSA {
 	 * @param cipher
 	 */
 	public static void show(long[] cipher) {
-
+		System.out.println(cipher);
 	}
 
 	/**
@@ -153,7 +153,26 @@ public class RSA {
 	 *         number
 	 */
 	public static long randPrime(int m, int n, Random rand) {
-		return (long) 0;
+		long rNum = rand.nextInt(n) + m;
+		// primality test
+		boolean isPrime = false;
+		while (!isPrime){
+			if (rNum <= 1){
+				rNum = rand.nextInt(n) + m;
+			}
+			else if (rNum % 2 == 0 || rNum % 3 == 0){
+				rNum = rand.nextInt(n) + m;
+			}
+			else{
+				for (int k = 0; 6 * k + 1 <= Math.sqrt(rNum); k++){
+					if (rNum == (6 * k + 1)){
+						isPrime = true;
+					}
+				}
+				rNum = rand.nextInt(n) + m;
+			}
+		}	
+		return rNum;	
 	}
 
 	/**
@@ -164,7 +183,8 @@ public class RSA {
 	 * @return a random number relatively prime to n
 	 */
 	public static long relPrime(long n, Random rand) {
-		return (long) 0;
+		long rNum = rand.nextInt();
+		return inverse(n, rNum);
 	}
 
 	/**
@@ -176,7 +196,7 @@ public class RSA {
 	 *         int.
 	 */
 	public static long toLong(String msg, int p) {
-		return (long) 0;
+		return Long.parseLong(Character.toString(msg.charAt(p)) + Character.toString(msg.charAt(p + 1)));
 	}
 
 	/**
@@ -186,7 +206,7 @@ public class RSA {
 	 * @return The string made up two numeric digits representing x
 	 */
 	public static String longTo2Chars(long x) {
-		return "";
+		return String.valueOf(x);
 	}
 
 }
