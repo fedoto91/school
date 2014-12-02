@@ -1,6 +1,5 @@
 package rsa;
 
-import java.io.*;
 import java.math.*;
 import java.util.*;
 
@@ -12,12 +11,17 @@ import java.util.*;
  * 
  * @authors Eugene Fedotov, Joe Desiderio, Scott Ritchie
  * 
+ * Note: this version represents the individual file submission for Joe Desiderio
+ * 
  */
 public class RSA {
 	public static void main(String args[]) {
+		System.out.println("Create Alice:");
 		Person Alice = new Person();
+		System.out.println("Create Bob:");
 		Person Bob = new Person();
 
+		System.out.println("Create String:");
 		// message to be sent to Bob
 		String msg = new String("Bob, let's have lunch.");
 
@@ -45,7 +49,7 @@ public class RSA {
 
 	// .......... place class methods here
 
-	//PART2 - Joe///////////////////////////////////////////////////////////////////////////////////////////
+//PART2///////////////////////////////////////////////////////////////////////////////////////////
 	
 	/**
 	 * Find the multiplicative inverse of a long int
@@ -64,12 +68,12 @@ public class RSA {
 		long rPrev = e;
 		long u2Prev = 0;
 		long uPrev = 1;
-		long rCur = 0;
+		long rCur = -1;
 		long qCur = 0;
 		long uCur = 0;
 
 		// calculate "table"
-		while(rCur != 1) {
+		while(rCur != 1 && rCur != 0) {
 			//calculate the current line of the table
 			rCur = r2Prev % rPrev;
 			qCur = r2Prev / rPrev;
@@ -82,7 +86,14 @@ public class RSA {
 			uPrev = uCur;
 		}
 		
-		// if negative, add mod value to make positive
+		if(rPrev == 0)
+		{
+			//System.out.println("No inverse exists, " + e + " and " + m + " are not relatively prime.");
+			return -1;
+		}
+		
+		// if result is negative, add mod value to get the
+		// smallest positive representation that is congruent
 		if (uCur < 0)
 			return uCur + m;
 		
@@ -99,26 +110,26 @@ public class RSA {
 	 */
 	public static long modPower(long b, long p, long m) {
 		
-		if(m == 0)
+		if(Long.compare(m, 0) <= 0)
 		{
 			System.out.print("Error! Modulo must be greater than zero: ");
 			return -1;
 		}
-		if(p == 0)
+		if(Long.compare(p,0) == 0)
 			return 1 % m;
-		if(p == 1)
+		if(Long.compare(p,1) == 0)
 			return b % m;
 		
-		if(b > m)
+		if(Long.compare(b,m) > 0)
 		{
 			b = b % m;
 		}
 		
 		long reducedP;
-		if(m > 1)
+		if(Long.compare(m,1) > 0)
 		{
 			reducedP = p % (m-1);
-			if(reducedP == 0)
+			if(Long.compare(reducedP,0) == 0)
 				return 1;
 		}
 		else
@@ -131,16 +142,17 @@ public class RSA {
 		}
 		return result;
 	}
-	
-	//End-PART2///////////////////////////////////////////////////////////////////////////////////////////
 
+//PART 3//////////////////////////////////////////////////////////////////////////////////////////////	
+	
 	/**
 	 * Display an array of longs on stdout
 	 * 
 	 * @param cipher
 	 */
 	public static void show(long[] cipher) {
-		System.out.println(cipher);
+		
+		System.out.println(Arrays.toString(cipher));
 	}
 
 	/**
@@ -153,26 +165,12 @@ public class RSA {
 	 *         number
 	 */
 	public static long randPrime(int m, int n, Random rand) {
-		long rNum = rand.nextInt(n) + m;
-		// primality test
-		boolean isPrime = false;
-		while (!isPrime){
-			if (rNum <= 1){
-				rNum = rand.nextInt(n) + m;
-			}
-			else if (rNum % 2 == 0 || rNum % 3 == 0){
-				rNum = rand.nextInt(n) + m;
-			}
-			else{
-				for (int k = 0; 6 * k + 1 <= Math.sqrt(rNum); k++){
-					if (rNum == (6 * k + 1)){
-						isPrime = true;
-					}
-				}
-				rNum = rand.nextInt(n) + m;
-			}
-		}	
-		return rNum;	
+		long probPrime = BigInteger.probablePrime(16, rand).longValue();
+		while((Long.compare(probPrime,m) < 0) || (Long.compare(probPrime,n) > 0))
+		{
+			probPrime = BigInteger.probablePrime(16, rand).longValue();
+		}
+		return probPrime;
 	}
 
 	/**
@@ -184,7 +182,11 @@ public class RSA {
 	 */
 	public static long relPrime(long n, Random rand) {
 		long rNum = rand.nextInt();
-		return inverse(n, rNum);
+		while(inverse(n, rNum) == -1 || Long.compare(rNum, 0) <= 0)
+		{
+			rNum = rand.nextInt();
+		}
+		return rNum;
 	}
 
 	/**
@@ -196,7 +198,11 @@ public class RSA {
 	 *         int.
 	 */
 	public static long toLong(String msg, int p) {
-		return Long.parseLong(Character.toString(msg.charAt(p)) + Character.toString(msg.charAt(p + 1)));
+		//return Long.parseLong(Character.toString(msg.charAt(p))
+				//+ Character.toString(msg.charAt(p + 1)));
+		long charVal1 = (int) msg.charAt(p);
+		long charVal2 = (int) msg.charAt(p+1);
+		return (charVal1 * 1000) + charVal2;
 	}
 
 	/**
@@ -206,7 +212,12 @@ public class RSA {
 	 * @return The string made up two numeric digits representing x
 	 */
 	public static String longTo2Chars(long x) {
-		return String.valueOf(x);
+		//return String.valueOf(x);
+		int upper = (int) (x/1000);
+		int lower = (int) (x-(upper*1000));
+		String str = "";
+		str += (char) upper;
+		str += (char) lower;
+		return str;
 	}
-
 }
