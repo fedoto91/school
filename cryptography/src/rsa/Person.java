@@ -1,82 +1,113 @@
-import java.util.Random;
+import java.util.*;
+
 /**
- * Used to test public-key crypto-system, RSA 
- * Generate a public key for this person, consisting of exponent,e, and modulus, m.
- * Generate a private key, consisting of an exponent, d.
- * Provide access to the public key only.
- * Used to test public-key crypto-system, RSA
- * @author Scott
+ * Person represents a person containing both a public and
+ * private key for use with RSA cryptography. Functionality
+ * is provided to allow encryption of a message to be sent to
+ * another person as well as decryption of a message received
+ * from another person.
+ * 
+ * @authors Eugene Fedotov, Joe Desiderio, Scott Ritchie
+ * 
  */
+//PART 1////////////////////////////////////////////////////////////////////
 public class Person {
 
-	RSA rsa = new RSA();
-	private long mod;
-	private long exp;
-	private long private_key;
-	private long n, p, q;
-	
-	public Person(){
-		Random rand = new Random();
-		p = rsa.randPrime();
-		q = rsa.randPrime();
-		n = (p - 1) * (q - 1);
-		mod = p * q;
-		exp = rand.nextLong();
-		private_key = rsa.inverse(exp, n);
-	}
-	
+	private long m;
+	private long e;
+	private long d;
+	RSA rsa;
+
 	/**
-	 * Decrypt the cipher text
-	 * @param cipher to decrypt
-	 * @return a string of plain text
+	 * Generate a public key for this person, consisting of exponent,e, and
+	 * modulus, m. Generate a private key, consisting of an exponent, d. Provide
+	 * access to the public key only.
 	 */
-	public String decrypt(long[] cipher){
-		// TODO this is probably wrong
-		String plain_text = "";
-		for(long l : cipher){
-			plain_text += rsa.longTo2Char(l);
+	public Person() {
+		Random rand = new Random();
+		long p = RSA.randPrime(357, 46340, rand);
+		System.out.println("p: " + p);
+		long q = RSA.randPrime(357, 46340, rand);
+		System.out.println("q: " + q);
+		
+		m = p*q; // must be greater than 127127
+		System.out.println("p*q (or m): " + m);
+		
+		long n = (p-1)*(q-1);
+		System.out.println("n: " + n);
+		
+		e = RSA.relPrime(n, rand);
+		while(Long.compare(e,50000L) > 0)
+		{
+			e = RSA.relPrime(n, rand);
 		}
-		return plain_text;
+		System.out.println("e: " + e);
+		
+		d = RSA.inverse(e, n);
+		System.out.println("d: " + d);
 	}
-	
+
 	/**
 	 * Encrypt a plain text message to she.
-	 * @param msg plain text
-	 * @param she Person you're interacting with
+	 * 
+	 * @param msg
+	 * @param she
 	 * @return An array of longs, which is the cipher text
 	 */
-	public long[] encryptTo(String msg){
-		// Convert to numeric first
-		//   then use toLong
-		long[] cipher = {};
-		String num_string;
-		for(int i=0; i < msg.length(); i++){
-			char c = msg.charAt(i);
-			int num = Character.getNumericValue(c);
-			num_string += num;
-			// String of 2-digit numeric values
+	public long[] encryptTo(String msg, Person she) {
+		if(msg.length() % 2 != 0)
+		{
+			msg += " ";
 		}
-		// Converts each character in numeric form to a long
-		//   and adds it to the long array cipher
-		for(int i=0; i < num_string.length(); i=i+2){
-			cipher.add(rsa.toLong(num_string, i));
+		
+		long[] chars = new long[msg.length()/2];
+		int ndx = 0;
+		for(int i = 0; i <= msg.length() - 2; i+=2)
+		{
+			long twoCharVals = RSA.toLong(msg, i);
+			chars[ndx] = (RSA.modPower(twoCharVals, she.getE(), she.getM()));
+			ndx++;
 		}
-		return cipher;
+		return chars;
+	}
+
+	/**
+	 * Decrypt the cipher text
+	 * 
+	 * @param cipher
+	 * @return a string of plain text
+	 */
+	public String decrypt(long[] cipher) {
+		String str = "";
+		for(int i = 0; i < cipher.length; i++)
+		{
+			long decrChars = (RSA.modPower(cipher[i], d, m));
+			str += RSA.longTo2Chars(decrChars);
+		}
+		return str;
 	}
 	
-	/**
-	 * Access the public encryption exponent
-	 * @return The public encryption exponent for this Person
-	 */
-	public long getE(){
-		return exp;
-	}
+	
+	
+	
+	//////////////////////////////////////////////////////////////////////////////////////////
 	
 	/**
 	 * Access the public modulus
+	 * 
 	 * @return The public modulus for this Person
 	 */
-	public long getM(){
-		return mod;
+	public long getM() {
+		return m;
 	}
+
+	/**
+	 * Access the public encryption exponent
+	 * 
+	 * @return The public encryption exponent for this Person
+	 */
+	public long getE() {
+		return e;
+	}
+
 }
